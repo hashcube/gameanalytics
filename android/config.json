@@ -1,5 +1,5 @@
 {
-  "copyFiles": [],
+  "copyFiles": ["GameAnalyticsPlugin.java"],
   "libraries": [],
   "jars": ["game-analytics-wrapper-v1.14.4.jar"],
   "injectionXML": "manifest.xml",
