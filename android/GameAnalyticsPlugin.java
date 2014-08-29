@@ -128,21 +128,21 @@ public class GameAnalyticsPlugin implements IPlugin {
     int value = Integer.parseInt(jsonData);
 
     GameAnalytics.setNetworkPollInterval(value);
-    log("setNetworkPollInterval: " + jsonData);
+    log("setNetworkPollInterval: " + Integer.toString(value));
   }
 
   public void setSendEventsInterval(String jsonData) {
     int value = Integer.parseInt(jsonData);
 
     GameAnalytics.setSendEventsInterval(value);
-    log("setSendEventsInterval: " + jsonData);
+    log("setSendEventsInterval: " + Integer.toString(value));
   }
 
   public void setSessionTimeOut(String jsonData) {
     int value = Integer.parseInt(jsonData);
 
     GameAnalytics.setSessionTimeOut(value);
-    log("setSessionTimeOut: " + jsonData);
+    log("setSessionTimeOut: " + Integer.toString(value));
   }
 
   public void onResume() {
