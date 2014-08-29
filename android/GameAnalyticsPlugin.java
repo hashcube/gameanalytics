@@ -62,52 +62,100 @@ public class GameAnalyticsPlugin implements IPlugin {
     GameAnalytics.logUnhandledExceptions();
   }
 
-  public void logFPS(String dummy) {
-    log("logFPS");
+  public void logFPS(String jsonData) {
     GameAnalytics.logFPS();
+    log("logFPS");
   }
 
-  public void newBusinessEvent(String item, String currency, int amount) {
-    log("newBusinessEvent");
-    GameAnalytics.newBusinessEvent(item, currency, amount);
+  public void setUserInfo(String jsonData) {
+    char gender;
+    int birthYear;
+    int friendCount;
+
+    try {
+      JSONObject obj = new JSONObject(jsonData);
+      gender = obj.getString("gender").charAt(0);
+      birthYear = obj.getInt("birthYear");
+      friendCount = obj.getInt("friendCount");
+      GameAnalytics.setUserData(gender, birthYear, friendCount);
+      log("setUserInfo: " + Character.toString(gender) + ", " + Integer.toString(birthYear) + ", " + Integer.toString(friendCount));
+    } catch (JSONException e) {
+      log("setUserInfo failed: " + e.getMessage());
+    }
   }
 
-  public void newDesignEvent(String eventId, float value) {
-    log("newDesignEvent");
-    GameAnalytics.newDesignEvent(eventId, value);
+  public void newBusinessEvent(String jsonData) {
+    String item;
+    String currency;
+    float amount;
+
+    try {
+      JSONObject obj = new JSONObject(jsonData);
+      item = obj.getString("item");
+      currency = obj.getString("currency");
+      amount = (float) obj.getDouble("amount");
+      GameAnalytics.newBusinessEvent(item, currency, amount);
+      log("newBusinessEvent: " + item + ", " + currency + ", " + Float.toString(amount));
+    } catch (JSONException e) {
+      log("newBusinessEvent failed: " + e.getMessage());
+    }
+
   }
 
-  public void newErrorEvent(String message, Severity severity_level) {
-    log("newErrorEvent");
+  public void newDesignEvent(String jsonData) {
+    String eventId;
+    float value;
+
+    try {
+      JSONObject obj = new JSONObject(jsonData);
+      eventId = obj.getString("eventId");
+      value = (float) obj.getDouble("value");
+      GameAnalytics.newDesignEvent(eventId, value);
+      log("newDesignEvent: " + eventId + ", " + Float.toString(value));
+    } catch (JSONException e) {
+      log("newDesignEvent failed: " + e.getMessage());
+    }
+  }
+
+  public void newErrorEvent(String message) {
+    //TODO: get error severity level as parameter for the function
+    Severity severity_level = GameAnalytics.ERROR_SEVERITYS;
     GameAnalytics.newErrorEvent(message, severity_level);
+    log("newErrorEvent: " + message);
   }
 
-  public void setNetworkPollInterval(int value) {
-    log("setNetworkPollInterval");
+  public void setNetworkPollInterval(String jsonData) {
+    int value = Integer.parseInt(jsonData);
+
     GameAnalytics.setNetworkPollInterval(value);
+    log("setNetworkPollInterval: " + jsonData);
   }
 
-  public void setSendEventsInterval(int value) {
-    log("setSendEventsInterval");
+  public void setSendEventsInterval(String jsonData) {
+    int value = Integer.parseInt(jsonData);
+
     GameAnalytics.setSendEventsInterval(value);
+    log("setSendEventsInterval: " + jsonData);
   }
 
-  public void setSessionTimeOut(int value) {
-    log("setSessionTimeOut");
+  public void setSessionTimeOut(String jsonData) {
+    int value = Integer.parseInt(jsonData);
+
     GameAnalytics.setSessionTimeOut(value);
+    log("setSessionTimeOut: " + jsonData);
   }
 
   public void onResume() {
-    log("onResume");
     GameAnalytics.startSession(_activity);
+    log("onResume");
   }
 
   public void onStart() {
   }
 
   public void onPause() {
-    log("onPause");
     GameAnalytics.stopSession();
+    log("onPause");
   }
 
   public void onStop() {
