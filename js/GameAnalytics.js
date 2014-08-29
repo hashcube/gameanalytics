@@ -1,4 +1,4 @@
-var debug = true,
+var debug = false,
 
   sendEvent = function (fn, data) {
     NATIVE.plugins.sendEvent("GameAnalyticsPlugin", fn, JSON.stringify(data || {}));

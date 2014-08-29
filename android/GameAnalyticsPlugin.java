@@ -22,7 +22,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 public class GameAnalyticsPlugin implements IPlugin {
   private Activity _activity;
   private static String LOGID = "{GameAnalytics Native}";
-  private static boolean DEBUG = true;
+  private static boolean DEBUG = false;
 
   public GameAnalyticsPlugin() {
   }
