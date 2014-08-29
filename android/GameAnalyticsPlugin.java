@@ -2,10 +2,8 @@ package com.tealeaf.plugin.plugins;
 
 import com.tealeaf.logger;
 import com.tealeaf.plugin.IPlugin;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.util.Iterator;
 
 import com.gameanalytics.android.GameAnalytics;
 import com.gameanalytics.android.Severity;
@@ -13,7 +11,6 @@ import com.gameanalytics.android.Severity;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
-import android.util.Log;
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
