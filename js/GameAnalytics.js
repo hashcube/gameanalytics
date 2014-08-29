@@ -24,7 +24,53 @@ var debug = true,
 
     this.logFPS = function () {
       log('logFPS');
-      NATIVE.plugins.sendEvent("GameAnalyticsPlugin", "logFPS");
+      sendEvent("logFPS");
+    };
+
+    this.setUserInfo = function (gender, birth_year, friend_count) {
+      log('setUserInfo', gender, birth_year, friend_count);
+      sendEvent("setUserInfo", {
+        gender: gender,
+        birthYear: birthYear,
+        friendCount: friendCount
+      });
+    };
+
+    this.newBusinessEvent = function(item, currency, amount) {
+      log('newBusinessEvent', item, currency, amount);
+      sendEvent("newBusinessEvent", {
+        item: item,
+        currency: currency,
+        amount: amount
+      });
+    };
+
+    this.newDesignEvent = function(id, value) {
+      log("newDesignEvent", id, value);
+      sendEvent("newDesignEvent", {
+        eventId: id,
+        value: value
+      });
+    };
+
+    this.newErrorEvent = function(message) {
+      log("newErrorEvent", message);
+      sendEvent("newErrorEvent", message);
+    };
+
+    this.setNetworkPollInterval = function(value) {
+      log("setNetworkPollInterval", value);
+      sendevent("setNetworkPollInterval", value);
+    };
+
+    this.setSendEventsInterval = function(value) {
+      log("setSendEventsInterval", value);
+      sendevent("setSendEventsInterval", value);
+    };
+
+    this.setSessionTimeOut = function(value) {
+      log("setSessionTimeOut", value);
+      sendevent("setSessionTimeOut", value);
     };
   });
 
