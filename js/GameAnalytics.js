@@ -56,17 +56,17 @@ var debug = true,
 
     this.setNetworkPollInterval = function(value) {
       log("setNetworkPollInterval", value);
-      sendevent("setNetworkPollInterval", value);
+      sendEvent("setNetworkPollInterval", value);
     };
 
     this.setSendEventsInterval = function(value) {
       log("setSendEventsInterval", value);
-      sendevent("setSendEventsInterval", value);
+      sendEvent("setSendEventsInterval", value);
     };
 
     this.setSessionTimeOut = function(value) {
       log("setSessionTimeOut", value);
-      sendevent("setSessionTimeOut", value);
+      sendEvent("setSessionTimeOut", value);
     };
   });
 
