@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 public class GameAnalyticsPlugin implements IPlugin {
+  private Activity _activity;
   private static String LOGID = "{GameAnalytics Native}";
   private static boolean DEBUG = true;
 
@@ -40,6 +41,7 @@ public class GameAnalyticsPlugin implements IPlugin {
     PackageManager manager = activity.getPackageManager();
     String gameKey = "";
     String secretKey = "";
+    _activity = activity;
 
     try {
       Bundle meta = manager.getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA).metaData;
@@ -77,7 +79,7 @@ public class GameAnalyticsPlugin implements IPlugin {
       gender = obj.getString("gender").charAt(0);
       birthYear = obj.getInt("birthYear");
       friendCount = obj.getInt("friendCount");
-      GameAnalytics.setUserData(gender, birthYear, friendCount);
+      GameAnalytics.setUserInfo(gender, birthYear, friendCount);
       log("setUserInfo: " + Character.toString(gender) + ", " + Integer.toString(birthYear) + ", " + Integer.toString(friendCount));
     } catch (JSONException e) {
       log("setUserInfo failed: " + e.getMessage());
@@ -87,15 +89,15 @@ public class GameAnalyticsPlugin implements IPlugin {
   public void newBusinessEvent(String jsonData) {
     String item;
     String currency;
-    float amount;
+    int amount;
 
     try {
       JSONObject obj = new JSONObject(jsonData);
       item = obj.getString("item");
       currency = obj.getString("currency");
-      amount = (float) obj.getDouble("amount");
+      amount = obj.getInt("amount");
       GameAnalytics.newBusinessEvent(item, currency, amount);
-      log("newBusinessEvent: " + item + ", " + currency + ", " + Float.toString(amount));
+      log("newBusinessEvent: " + item + ", " + currency + ", " + Integer.toString(amount));
     } catch (JSONException e) {
       log("newBusinessEvent failed: " + e.getMessage());
     }
@@ -119,7 +121,7 @@ public class GameAnalyticsPlugin implements IPlugin {
 
   public void newErrorEvent(String message) {
     //TODO: get error severity level as parameter for the function
-    Severity severity_level = GameAnalytics.ERROR_SEVERITYS;
+    Severity severity_level = GameAnalytics.ERROR_SEVERITY;
     GameAnalytics.newErrorEvent(message, severity_level);
     log("newErrorEvent: " + message);
   }
