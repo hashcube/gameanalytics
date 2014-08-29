@@ -2,7 +2,6 @@ package com.tealeaf.plugin.plugins;
 
 import com.tealeaf.logger;
 import com.tealeaf.plugin.IPlugin;
-import java.io.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
