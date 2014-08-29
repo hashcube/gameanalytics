@@ -8,20 +8,22 @@ var debug = true,
     }
   },
 
-
   log = function() {
     if(debug) {
-      logger.log.apply(logger, arguments);
+      var arg = Array.prototype.slice.call(arguments);
+
+      arg.unshift("GameAnalytics - JS: ");
+      logger.log.apply(logger, arg);
     }
   },
 
   GameAnalytics = Class(function () {
     this.init = function () {
-      log('GameAnalytics: init');
+      log('init');
     };
 
     this.logFPS = function () {
-      log('GameAnalytics: logFPS');
+      log('logFPS');
       NATIVE.plugins.sendEvent("GameAnalyticsPlugin", "logFPS");
     };
   });
