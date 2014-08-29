@@ -1,11 +1,7 @@
 var debug = true,
 
-  hasNativeEvents = NATIVE && NATIVE.plugins && NATIVE.plugins.sendEvent,
-
   sendEvent = function (fn, data) {
-    if (hasNativeEvents) {
-      NATIVE.plugins.sendEvent("GameAnalyticsPlugin", fn, JSON.stringify(data || {}));
-    }
+    NATIVE.plugins.sendEvent("GameAnalyticsPlugin", fn, JSON.stringify(data || {}));
   },
 
   log = function() {
