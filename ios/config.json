@@ -1,0 +1,14 @@
+{
+  "code": [
+    "GameAnalytics.h",
+    "GameAnalyticsPlugin.h",
+    "GameAnalyticsPlugin.mm"
+  ],
+  "frameworks": [
+    "libGameAnalytics_1.0.1.a",
+    "GAResources.bundle"
+  ],
+  "linkerFlags": [
+    "-ObjC"
+  ]
+}
