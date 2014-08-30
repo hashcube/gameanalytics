@@ -27,8 +27,8 @@ var debug = false,
       log('setUserInfo', gender, birth_year, friend_count);
       sendEvent("setUserInfo", {
         gender: gender,
-        birthYear: birthYear,
-        friendCount: friendCount
+        birthYear: birth_year,
+        friendCount: friend_count
       });
     };
 
