@@ -66,17 +66,23 @@ public class GameAnalyticsPlugin implements IPlugin {
   }
 
   public void setUserInfo(String jsonData) {
-    char gender;
-    int birthYear;
-    int friendCount;
+    Character gender = null;
+    Integer birthYear = null;
+    Integer friendCount = null;
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      gender = obj.getString("gender").charAt(0);
-      birthYear = obj.getInt("birthYear");
-      friendCount = obj.getInt("friendCount");
+      if (!obj.isNull("gender")) {
+          gender = obj.getString("gender").charAt(0);
+      }
+      if (!obj.isNull("birthYear")) {
+          birthYear = obj.getInt("birthYear");
+      }
+      if (!obj.isNull("friendCount")) {
+          friendCount = obj.getInt("friendCount");
+      }
       GameAnalytics.setUserInfo(gender, birthYear, friendCount);
-      log("setUserInfo: " + Character.toString(gender) + ", " + Integer.toString(birthYear) + ", " + Integer.toString(friendCount));
+      log("setUserInfo: " + gender + ", " + birthYear + ", " + friendCount);
     } catch (JSONException e) {
       log("setUserInfo failed: " + e.getMessage());
     }
