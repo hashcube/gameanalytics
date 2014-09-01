@@ -1,0 +1,6 @@
+<!--START_PLUGINS_MANIFEST-->
+<!--END_PLUGINS_MANIFEST-->
+<!--START_PLUGINS_APPLICATION-->
+  <meta-data android:name="gameanalyticsGameKey" android:value="" />
+  <meta-data android:name="gameanalyticsSecretKey" android:value="" />
+<!--END_PLUGINS_APPLICATION-->
