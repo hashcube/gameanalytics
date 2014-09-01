@@ -25,17 +25,28 @@
   [GameAnalytics initializeWithGameKey:[ios valueForKey:@"gameanalyticsGameKey"]
                              secretKey:[ios valueForKey:@"gameanalyticsSecretKey"]];
 
-  //TODO, in future, this can be configured in the client in manifest.json for example
-  [GameAnalytics setSendEventsInterval:10];
-
   //NOTE: REMOVE THIS IN PRODUCTION
   //[GameAnalytics setDebugLogLevelVerbose:TRUE];
 }
 
 - (void) setUserInfo:(NSDictionary *) jsonData {
-  [GameAnalytics setUserInfoWithGender:[jsonData objectForKey:@"gender"]
-                             birthYear:[jsonData objectForKey:@"birthYear"]
-                           friendCount:[jsonData objectForKey:@"friendCount"]];
+  NSString *gender = [jsonData objectForKey:@"gender"];
+  NSNumber *birthYear = [jsonData objectForKey:@"birthYear"];
+  NSNumber *friendCount = [jsonData objectForKey:@"friendCount"];
+
+  if(gender == (id)[NSNull null] || gender.length == 0 ) {
+    gender = nil;
+  }
+  if ([birthYear isKindOfClass:[NSNull class]]) {
+    birthYear = nil;
+  }
+  if ([friendCount isKindOfClass:[NSNull class]]) {
+    friendCount = nil;
+  }
+
+  [GameAnalytics setUserInfoWithGender:gender
+                             birthYear:birthYear
+                           friendCount:friendCount];
 }
 
 - (void) newBusinessEvent:(NSDictionary *) jsonData {
