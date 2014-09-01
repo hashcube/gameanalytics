@@ -46,7 +46,7 @@ public class GameAnalyticsPlugin implements IPlugin {
         secretKey = meta.getString("gameanalyticsSecretKey");
       }
     } catch (Exception e) {
-      android.util.Log.d("EXCEPTION", "" + e.getMessage());
+        log(e.getMessage());
     }
 
     if (DEBUG) {
