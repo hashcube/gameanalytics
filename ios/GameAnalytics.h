@@ -16,7 +16,7 @@ typedef enum GASeverityType : NSInteger {
     GASeverityTypeDebug     = 4,
 } GASeverityType;
 
-#define GA_SDK_VERSION  @"ios 1.0.1"
+#define GA_SDK_VERSION  @"ios 1.0.2"
 
 @interface GameAnalytics : NSObject
 
