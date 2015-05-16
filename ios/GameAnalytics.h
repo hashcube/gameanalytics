@@ -1,371 +1,672 @@
 //
 //  GameAnalytics.h
-//  GameAnalytics
+//  GA-SDK-IOS
 //
-//  Created by Rick Chapman on 10/02/2014.
-//  Copyright (c) 2014 Rick Chapman. All rights reserved.
+//  Copyright (c) 2015 GameAnalytics. All rights reserved.
 //
+
+/*!
+ @header GameAnalytics BETA iOS SDK
+ @discussion
+ <h2>What is GameAnalytics?</h2>
+ <p>GameAnalytics is a cloud-hosted solution for tracking, analysis and reporting of game metrics. You can use the services provided by GameAnalytics to store your game-related data directly in the cloud and process, visualize, and analyze it on the fly.</p>
+ 
+ <h3>Changelog</h3>
+
+ <p>Latest changes</p>
+ <ul>
+ <li>changed authentication hash method to HMAC</li>
+ <li>added method to set engine version from wrapper engines</li>
+ <li>altered method naming to conform to apple naming guidelines</li>
+ <li>added ‘score’ value to progression events</li>
+ <li>fixed bug when submitting business event receipt</li>
+ <li>minor optimizations</li>
+ </ul>
+ <p>Current version: 2.0.2</p>
+
+ <h3>Event types</h3>
+ <p>We provide a wide range of event types that you can instrument in your game to track the data you're interested in building your analysis from. Here's a brief overview of their uses:</p>
+ <p><b>Business</b></p>
+ <p>Track any real money transaction in-game. Additionally fetch and attach the in-app purchase receipt.</p>
+ <p><b>Resource</b></p>
+ <p>Analyze your in-game economy (virtual currencies). You will be able to see the flow (sink/source) for each virtual currency.</p>
+ <p><b>Progression</b></p>
+ <p>Measure player progression in the game. It follows a 3 hierarchy structure (world, level and phase) to indicate a player's path or place.</p>
+ <p><b>Error</b></p>
+ <p>Set up custom error events in the game. You can group the events by severity level and attach a message.</p>
+ <p><b>Design</b></p>
+ <p>Track any type of design event that you want to measure i.e. GUI elements or tutorial steps. <i>Custom dimensions are not supported.</i></p>
+  
+ <h3>Download and installation</h3>
+ <p>Download the latest version of the GameAnalytics SDK. Add these files to the Xcode project folder:</p>
+ <ul>
+ <li>GameAnalytics.h - The required header file containing methods for GameAnalytics</li>
+ <li>libGameAnalytics.a - The required static library for GameAnalytics</li>
+ </ul>
+
+ <h2>Setup</h2>
+ <p>In your project "Build Phases" add the following to "Link Binary With Libraries":</p>
+ <ul>
+ <li>AdSupport.framework</li>
+ <li>SystemConfiguration.framework</li>
+ <li>libsqlite3.dylib</li>
+ <li>libz.dylib</li>
+ <li>libGameAnalytics.a (if not already present)</li>
+ </ul>
+
+ <h2>Usage</h2>
+ <p>You can now use the SDK by adding this in your precompiled header or other places where it's needed:<p>
+ <code>#import "GameAnalytics.h"</code>
+
+ <h4>SDK initialize flow</h4>
+ <p>GameAnalytics will be activated once initialization method is called. Some methods can only be called <b>before</b> and others <b>after</b> the initialize call.</p>
+ <ul>
+ <li>Call configure methods - specifying build, valid dimensions...</li>
+ <li>Call initialize with the game key and secret key</li>
+ <li>Call post-initialize methods - adding events or changing current dimensions.</li>
+ </ul>
+
+ <h3>Sessions</h3>
+ <p>A new session is started when:</p>
+ <ul>
+ <li>The SDK is being <b>initialized</b> (game launch)</li>
+ <li>When the app is <b>resuming from background</b></li>
+ </ul>
+ When the app is <b>going to background</b> it will attempt to send a "session_end" event. Sometimes the "session_end" submission is interrupted if the device is offline or there is not enough time to send it. The next time the game launches it will detect this missing "session_end" and send it for the previous session.</p>
+ 
+ <p><b>Please note:</b> When developing locally the simulator/device will stop the app instantly and the "session_end" is often not sent. Therefore when developing locally there might be a "session_end" being submitted almost each time the game is started.</p>
+
+ <h3>Logging</h3>
+ <p>When implementing the SDK in Xcode the console will output information about what is going on.</p>
+
+ <p>These log types will always be available in the log:</p>
+ <ul>
+ <li><b>Warning</b> - non-critical unexpected behavior like parameter validation fail.</li>
+ <li><b>Error</b> - critical errors within the SDK that should never happen and will cause it to disable.</li>
+ </ul>
+
+ <p>These log types need to be activated:</p>
+ <ul>
+ <li><b>InfoLog</b> - Compact information output when actions are performed by the SDK, i.e. adding/sending events. Use this when implementing the SDK.</li>
+ <li><b>VerboseLog</b> - This will print the full JSON data that will be submitted to our servers.</li>
+ </ul>
+
+ <h3>Performance and threading</h3>
+ <p>Every action performed by the SDK (like adding an event) is added into a low-priority thread queue.</p>
+ <p>This will prevent the SDK blocking the main thread. Each added task will be queued for processing in the same order it was added.</p>
+
+ <h2>Example</h2>
+ <p>This is a short example of a typical instrumentation.</p>
+ 
+ <h3>Initialize the SDK</h3>
+ <p>You can place this code in the AppDelegate class in the method "applicationDidFinishLaunchingWithOptions".</p>
+
+ <pre><code>
+ // Enable log
+ [GameAnalytics setEnabledInfoLog:YES];
+ [GameAnalytics setEnabledVerboseLog:NO];
+
+ // Configure available virtual currencies and item types
+ [GameAnalytics configureAvailableResourceCurrencies:@[@"gems", @"gold"]];
+ [GameAnalytics configureAvailableResourceItemTypes:@[@"boost", @"lives", @"weapon"]];
+
+ // Configure available custom dimensions
+ [GameAnalytics configureAvailableCustomDimensions01:@[@"ninja", @"samurai"]];
+ [GameAnalytics configureAvailableCustomDimensions02:@[@"whale", @"dolphin"]];
+ [GameAnalytics configureAvailableCustomDimensions03:@[@"horde", @"alliance"]];
+
+ // Configure build version
+ [GameAnalytics configureBuild:@"0.1.0"];
+
+ // Initialize
+ [GameAnalytics initializeWithGameKey:@"[game key]" gameSecret:@"[secret key]"];
+ </code></pre>
+
+ <p><b>Start instrumentation</b></p>
+ <p>The methods for adding events become active once the SDK initialization has been called.</p>
+ <p>The following is a list of one-liner examples. When implemented in a game they should be called at different parts of the code where the specific action is happening.</p>
+
+ <pre><code>
+  // Set dimension (will persist cross session)
+ [GameAnalytics setCustomDimension01:@"ninja"];
+
+ // Set progression start (e.g. level start)
+ [GameAnalytics addProgressionEventWithProgressionStatus:GAProgressionStatusStart progression01:@"world_01" progression02:@"level_01" progression03:@"wave_01"];
+
+ // Submit virtual currency event
+ [GameAnalytics addResourceEventWithFlowType:GAResourceFlowTypeSource currency:@"gold" amount:@999 itemType:@"weapon" itemId:@"sword_of_justice"];
+ // Submit custom design event
+ [GameAnalytics addDesignEventWithEventId:@"killed:metal_robot" value:@200];
+ // Submit error event
+ [GameAnalytics addErrorEventWithSeverity:GAErrorSeverityWarning message:@"warning detected in user object code. line 606."];
+
+ // Set progression complete (e.g. level end / score screen)
+ [GameAnalytics addProgressionEventWithProgressionStatus:GAProgressionStatusComplete progression01:@"world_01" progression02:@"level_01" progression03:@"wave_01" score:20000];
+
+ </code></pre>
+
+ */
 
 #import <Foundation/Foundation.h>
 
-typedef enum GASeverityType : NSInteger {
-    GASeverityTypeCritical  = 0,
-    GASeverityTypeError     = 1,
-    GASeverityTypeWarning   = 2,
-    GASeverityTypeInfo      = 3,
-    GASeverityTypeDebug     = 4,
-} GASeverityType;
+/*!
+ @enum
+ @discussion 
+ This enum is used to specify flow in resource events
+ @constant GAResourceFlowTypeSource
+ Used when adding to a resource currency
+ @constant GAResourceFlowTypeSink
+ Used when subtracting from a resource currency
+ */
+typedef enum GAResourceFlowType : NSInteger {
+    GAResourceFlowTypeSource = 1,
+    GAResourceFlowTypeSink = 2
+} GAResourceFlowType;
 
-#define GA_SDK_VERSION  @"ios 1.0.2"
+
+/*!
+ @enum
+ @discussion
+ his enum is used to specify status for progression event
+ @constant GAProgressionStatusStart
+ User started progression
+ @constant GAProgressionStatusComplete
+ User succesfully ended a progression
+ @constant GAProgressionStatusFail
+ User failed a progression
+ */
+typedef enum GAProgressionStatus : NSInteger {
+    GAProgressionStatusStart = 1,
+    GAProgressionStatusComplete = 2,
+    GAProgressionStatusFail = 3
+} GAProgressionStatus;
+
+
+/*!
+ @enum
+ @discussion
+ his enum is used to specify severity of an error event
+ @constant GAErrorSeverityDebug
+ @constant GAErrorSeverityInfo
+ @constant GAErrorSeverityWarning
+ @constant GAErrorSeverityError
+ @constant GAErrorSeverityCritical
+ */
+typedef enum GAErrorSeverity : NSInteger {
+    GAErrorSeverityDebug = 1,
+    GAErrorSeverityInfo = 2,
+    GAErrorSeverityWarning = 3,
+    GAErrorSeverityError = 4,
+    GAErrorSeverityCritical = 5
+} GAErrorSeverity;
+
+@class GameAnalytics;
 
 @interface GameAnalytics : NSObject
 
-/**
- * Initialise the GameAnalytics engine. It is recommended that you call
- * this method from the your application delegate in application:didFinishLaunchingWithOptions:
- * Uses the value of 'CFBundleVersion' from the application's info.plist file as the
- * build version of the application by default.
- *
- * @param gameKey
- *            game key supplied when you registered at GameAnalytics
- * @param secretKey
- *            secret key supplied when you registered at GameAnalytics
+
+/*!
+ @method
+ 
+ @abstract Define available 1st custom dimensions
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ NSArray *dimensionArray = @[@"dimA", @"dimB", @"dimC"];<br>
+ [GameAnalytics configureAvailableCustomDimensions01:dimensionArray];
+ </code></pre>
+ 
+ @param customDimensions
+    Must be an array of strings.<br>
+    (Array max length=20, String max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)initializeWithGameKey:(NSString *)gameKey secretKey:(NSString *)secretKey;
++ (void)configureAvailableCustomDimensions01:(NSArray *)customDimensions;
 
-/**
- * Initialise the GameAnalytics engine. It is recommended that you call
- * this method from the your application delegate in application:didFinishLaunchingWithOptions:
- *
- * @param gameKey
- *            game key supplied when you registered at GameAnalytics
- * @param secretKey
- *            secret key supplied when you registered at GameAnalytics
- * @param build
- *            name supplied by you to identify this build of your app
- *
- * @see initializeWithGameKey:(NSString *)gameKey secretKey:(NSString *)secretKey
+/*!
+ @method
+ 
+ @abstract Set available 2nd custom dimensions
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ NSArray *available = @[@"dimD", @"dimE", @"dimF"];<br>
+ [GameAnalytics configureAvailableCustomDimensions02:dimensionArray;
+ </code></pre>
+ 
+ @param customDimensions
+    Must be an array of strings.<br>
+    (Array max length=20, String max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)initializeWithGameKey:(NSString *)gameKey secretKey:(NSString *)secretKey build:(NSString *)build;
++ (void)configureAvailableCustomDimensions02:(NSArray *)customDimensions;
 
-/**
- * Enable/disable the inbuilt Uncaught Exception Handler
- *
- * For iOS applications, Apple only allows you to register one crash handler in your app at a time 
- * which means you can only run a single Crash Reporting service. Our Crash Handler feature is disabled 
- * by default, so if you are using another service and do not want to use this Crash Handler instead you 
- * should leave it disabled and you will get the normal Game Analytics service without Crash. If you
- * want to use this Crash Analytics just enable it when you integrate the SDK.
- *
- * We strongly recommend that developers do not install any uncaught exception handlers in their app if
- * they enable this feature.
- *
- * This call must be made before initializeWithGameKey:secretKey:
- *
- * @param value
- *            true = enabled; false = disabled (default = false)
+/*!
+ @method
+ 
+ @abstract Set available 3rd custom dimensions
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ NSArray *available = @[@"dimA", @"dimB", @"dimC"];<br>
+ [GameAnalytics configureAvailableCustomDimensions03:dimensionArray];
+ </code></pre>
+ 
+ @param customDimensions
+    Must be an array of strings.<br>
+    (Array max length=20, String max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)enableExceptionHandler:(BOOL)value;
++ (void)configureAvailableCustomDimensions03:(NSArray *)customDimensions;
 
-// Events Logging
-
-/**
- * Add a new business event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval.
- *
- * @param eventId
- *            use colons to denote subtypes, e.g. 'PurchaseWeapon:Shotgun'
- * @param currency
- *            3 digit code for currency e.g. 'USD'
- * @param amount
- *            value of transaction
- * @param area
- *            area/level associated with the event
- * @param x
- *            position on x-axis
- * @param y
- *            position on y-axis
- * @param z
- *            position on z-axis
+/*!
+ @method
+ 
+ @abstract Set available resource currencies
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ NSArray *availableCurrencies = @[@"gems", @"gold"];<br>
+ [GameAnalytics configureAvailableResourceCurrencies:availableCurrencies];
+ </code></pre>
+ 
+ @param resourceCurrencies
+    Must be an array of strings.<br>
+    (Array max length=20, String max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)newBusinessEventWithId:(NSString *)eventId currency:(NSString *)currency amount:(NSNumber *)amount area:(NSString *)area x:(NSNumber *)x y:(NSNumber *)y z:(NSNumber *)z;
++ (void)configureAvailableResourceCurrencies:(NSArray *)resourceCurrencies;
 
-/**
- * Add a new business event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval. The
- * current bundle display name will be used as the 'area' value for the event.
- *
- * @param eventId
- *            use colons to denote subtypes, e.g. 'PurchaseWeapon:Shotgun'
- * @param currency
- *            3 digit code for currency e.g. 'USD'
- * @param amount
- *            value of transaction
+/*!
+ @method
+ 
+ @abstract Set available resource item types
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ NSArray *availableItemTypes = @[@"upgrades", @"powerups"];<br>
+ [GameAnalytics configureAvailableResourceItemTypes:availableItemTypes];
+ </code></pre>
+ 
+ @param resourceItemTypes
+    Must be an array of strings.<br>
+    (Array max length=20, String max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)newBusinessEventWithId:(NSString *)eventId currency:(NSString *)currency amount:(NSNumber *)amount;
++ (void)configureAvailableResourceItemTypes:(NSArray *)resourceItemTypes;
 
-/**
- * Add a new design event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval.
- *
- * @param eventId
- *            use colons to denote subtypes, e.g. 'PickedUpAmmo:Shotgun'
- * @param value
- *            numeric value associated with event e.g. number of shells
- * @param area
- *            area/level associated with the event
- * @param x
- *            position on x-axis
- * @param y
- *            position on y-axis
- * @param z
- *            position on z-axis
+/*!
+ @method
+ 
+ @abstract Set app build version
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ [GameAnalytics configureBuild:@"0.0.1"];
+ </code></pre>
+ 
+ @param build
+    (String max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)newDesignEventWithId:(NSString *)eventId value:(NSNumber *)value area:(NSString *)area x:(NSNumber *)x y:(NSNumber *)y z:(NSNumber *)z;
++ (void)configureBuild:(NSString *)build;
 
-/**
- * Add a new design event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval. The
- * current bundle display name will be used as the 'area' value for the event.
- *
- * @param eventId
- *            use colons to denote subtypes, e.g. 'PickedUpAmmo:Shotgun'
- * @param value
- *            numeric value associated with event e.g. number of shells
+/* @IF WRAPPER */
+/* 
+ Used ONLY by GameAnalytics wrapper SDK's (for example Unity).
+ Never call this manually!
  */
-+ (void)newDesignEventWithId:(NSString *)eventId value:(NSNumber *)value;
++ (void)configureSdkVersion:(NSString *)wrapperSdkVersion;
+/* @ENDIF UNITY */
 
-/**
- * Add a new design event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval. The
- * current bundle display name will be used as the 'area' value for the event.
- *
- * @param eventId
- *            use colons to denote subtypes, e.g. 'PickedUpAmmo:Shotgun'
+/*!
+ @method
+ 
+ @abstract Set app engine version
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ [GameAnalytics configureEngineVersion:@"unreal 4.8.1"];
+ </code></pre>
+ 
+ @param engineVersion
+ (String)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method must be called before initializing the SDK
  */
-+ (void)newDesignEventWithId:(NSString *)eventId;
++ (void)configureEngineVersion:(NSString *)engineVersion;
 
-/**
- * Add a new error event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval.
- *
- * @param message
- *            message associated with the error e.g. the stack trace
- * @param severity
- *            severity of error, use a valid GASeverityType value
- * @param area
- *            area/level associated with the event
- * @param x
- *            position on x-axis
- * @param y
- *            position on y-axis
- * @param z
- *            position on z-axis
- *
+/*!
+ @method
+
+ @abstract Initialize GameAnalytics SDK
+ 
+ @discussion <i>Example usage:</i>
+ <pre><code>
+ [GameAnalytics initializeWithGameKey:@"123456789ABCDEFGHIJKLMNOPQRSTU" gameSecret:@"123456789ABCDEFGHIJKLMNOPQRSTU12345678"];
+ </code></pre>
+ 
+ @param gameKey
+    (String)
+ @param gameSecret
+    (String)
+ 
+ @availability Available since 2.0.0
  */
-+ (void)newErrorEventWithMessage:(NSString *)message severity:(GASeverityType)severity area:(NSString *)area x:(NSNumber *)x y:(NSNumber *)y z:(NSNumber *)z;
++ (void)initializeWithGameKey:(NSString *)gameKey
+                   gameSecret:(NSString *)gameSecret;
 
-/**
- * Add a new error event to the event stack. This will be sent off in a
- * batched array after the time interval set using setSendEventsInterval. The
- * current bundle display name will be used as the 'area' value for the event.
- *
- * @param message
- *            message associated with the error e.g. the stack trace
- * @param severity
- *            severity of error, use a valid GASeverityType value
- * @see setSendEventsInterval
+
+/*!
+ @method
+
+ @abstract Add new business event with receipt
+ 
+ @param currency
+    Currency code in ISO 4217 format. (e.g. USD)
+ @param amount
+    Amount in cents (int). (e.g. 99)
+ @param itemType
+    Item Type bought. (e.g. Gold Pack)
+ @param itemId
+    Item bought. (e.g. 1000 gold)
+ @param receipt
+    Transaction receipt string. (Optional, can be nil)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)newErrorEventWithMessage:(NSString *)message severity:(GASeverityType)severity;
++ (void)addBusinessEventWithCurrency:(NSString *)currency
+                           amount:(NSInteger)amount
+                         itemType:(NSString *)itemType
+                           itemId:(NSString *)itemId
+                         cartType:(NSString *)cartType
+                          receipt:(NSString *)receipt;
 
-/**
- * Send user info to the Game Analytics server. All parameters are optional,
- * pass in 'null' if you do not have the data.
- *
- * @param gender
- *            user gender, use 'm' for male, 'f' for female
- * @param birthYear
- *            four digit birth year
- * @param friendCount
- *            number of friends
+
+/*!
+ @method
+
+ @abstract Add new business event
+ 
+ @param currency
+    Currency code in ISO 4217 format. (e.g. USD)
+ @param amount
+    (Integer) Amount in cents. (e.g. 99)
+ @param itemType
+    Item Type bought. (e.g. Gold Pack)
+ @param itemId
+    Item bought. (e.g. 1000 gold)
+ @param autoFetchReceipt
+    Should the SDK automatically fetch the transaction receipt and add it to the event
+ 
+ @availability Available since 1.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)setUserInfoWithGender:(NSString *)gender birthYear:(NSNumber *)birthYear friendCount:(NSNumber *)friendCount;
++ (void)addBusinessEventWithCurrency:(NSString *)currency
+                              amount:(NSInteger)amount
+                            itemType:(NSString *)itemType
+                              itemId:(NSString *)itemId
+                            cartType:(NSString *)cartType
+                    autoFetchReceipt:(BOOL)autoFetchReceipt;
 
-/**
- * Manually send referral info to the Game Analytics server. All parameters
- * are optional, use 'null' if you do not have the data.
- *
- * @param installPublisher
- *            e.g. FB, Chartboost, Google Adwords, Organic
- * @param installSite
- *            e.g. FB.com, FBApp, AppId
- * @param installCampaign
- *            e.g. Launch, EasterBoost, ChrismasSpecial
- * @param installAd
- *            e.g. Add#239823, KnutsShinyAd
- * @param installKeyword
- *            e.g. rts mobile game
+
+/*!
+ @method
+ 
+ @abstract Add new resource event
+ 
+ @param flowType
+    Add or substract resource.<br> (See. GAResourceFlowType)
+ @param currency
+    One of the available currencies set in configureAvailableResourceCurrencies
+ @param amount
+    Amount sourced or sinked
+ @param itemType
+    One of the available currencies set in configureAvailableResourceItemTypes
+ @param itemId
+    Item id (string max length=32)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)setReferralInfoWithPublisher:(NSString *)installPublisher installSite:(NSString *)installSite installCampaign:(NSString *)installCampaign installAdgroup:(NSString *)installAdgroup installAd:(NSString *)installAd installKeyword:(NSString *)installKeyword;
++ (void)addResourceEventWithFlowType:(GAResourceFlowType)flowType
+                            currency:(NSString *)currency
+                              amount:(NSNumber *)amount
+                            itemType:(NSString *)itemType
+                              itemId:(NSString *)itemId;
 
-// Various settings
 
-/**
- * @brief Set debug log level
- *
- * Set debug log level. Use TRUE while you are developing
- * to see when every event is created and batched to server.
- * Set to FALSE when you release your application so only
- * warning and event log entries are made. The default value is FALSE
- *
- * @param level
- *            Set to TRUE for verbose logs
- *
- * @since SDK Version 1.0.0
+/*!
+ @method
+ 
+ @abstract Add new progression event
+ 
+ @param progressionStatus
+    Status of added progression.<br> (See. GAProgressionStatus)
+ @param progression01
+    1st progression (e.g. world01)
+ @param progression02
+    2nd progression (e.g. level01)
+ @param progression03
+    3rd progression (e.g. phase01)
+ 
+ @availability Available since 1.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)setDebugLogLevelVerbose:(BOOL)level;
++ (void)addProgressionEventWithProgressionStatus:(GAProgressionStatus)progressionStatus
+                                   progression01:(NSString *)progression01
+                                   progression02:(NSString *)progression02
+                                   progression03:(NSString *)progression03;
 
-/**
- * Enable/disable automatic batching. By default (true) events are sent off
- * to the GA server after a time interval set using setSendEventsInterval().
- * If disabled (false) then you will need to use manualBatch() to send the
- * events to the server.
- *
- * @param value
- *            true = enabled; false = disabled
+/*!
+ @method
+ 
+ @abstract Add new progression event with score
+ 
+ @param progressionStatus
+ Status of added progression.<br> (See. GAProgressionStatus)
+ @param progression01
+ 1st progression (e.g. world01)
+ @param progression02
+ 2nd progression (e.g. level01)
+ @param progression03
+ 3rd progression (e.g. phase01)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)setAutoBatch:(BOOL)value;
++ (void)addProgressionEventWithProgressionStatus:(GAProgressionStatus)progressionStatus
+                                   progression01:(NSString *)progression01
+                                   progression02:(NSString *)progression02
+                                   progression03:(NSString *)progression03
+                                           score:(NSInteger)score;
 
-/**
- * Manually send a batch of events. This event will not
- * wait for the sendEventInterval nor will it poll the internet connection.
- * If there is no connection it will simply return.
+/*!
+ @method
+ 
+ @abstract Add new design event without a value
+ 
+ @param eventId
+    String can consist of 1 to 5 segments.<br>
+    Segments are seperated by ':' and segments can have a max length of 32.<br>
+    (e.g. segment1:anotherSegment:gold)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)manualBatch;
++ (void)addDesignEventWithEventId:(NSString *)eventId;
 
-/**
- * Enable/disable local caching. By default (true) events are cached locally
- * so that even if an internet connection is not available, they will be
- * sent to the GA server when it is restored. If disabled (false) events
- * will be discarded if a connection is unavailable.
- *
- * @param value
- *            true = enabled; false = disabled
+/*!
+ @method
+ 
+ @abstract Add new design event with a value
+ 
+ @param eventId
+    String can consist of 1 to 5 segments.<br>
+    segments are seperated by ':' and segments can have a max length of 32.<br>
+    (e.g. segment1:anotherSegment:gold)
+ @param value
+    Number value of event
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)setLocalCaching:(BOOL)value;
++ (void)addDesignEventWithEventId:(NSString *)eventId
+                            value:(NSNumber *)value;
 
-/**
- * Set the amount of time, in seconds, for a session to timeout so that
- * a new one is started when the application is restarted. The
- * default is 20 seconds.
- *
- * @param seconds
- *            interval in seconds
+
+/*!
+ @method
+ 
+ @abstract Add new error event
+ 
+ @param severity
+    Severity of error (See. GAErrorSeverity)
+ @param message
+    Error message (Optional, can be nil)
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! This method cannot be called before initialize method has been triggered
  */
-+ (void)setSessionTimeOut:(NSTimeInterval)seconds;
++ (void)addErrorEventWithSeverity:(GAErrorSeverity)severity
+                          message:(NSString *)message;
 
-/**
- * Set the amount of time, in seconds, between each batch of events
- * being sent. The default is 20 seconds.
- *
- * @param seconds
- *            interval in seconds
+
+/*!
+ @method
+ 
+ @abstract Enable info logging to console
+ 
+ @param flag
+    Enable or disable info log mode
+ 
+ @availability Available since 2.0.0
+ 
+*/
++ (void)setEnabledInfoLog:(BOOL)flag;
+
+/*!
+ @method
+ 
+ @abstract Enable verbose info logging of event JSON data to console
+ 
+ @param flag
+ Enable or disable verbose info log mode
+ 
+ @availability Available since 2.0.0
+ 
  */
-+ (void)setSendEventsInterval:(NSTimeInterval)seconds;
++ (void)setEnabledVerboseLog:(BOOL)flag;
 
-/**
- * Manually clears the database, will result in loss of analytics data if
- * used in production.
+/*!
+ @method
+ 
+ @abstract Set 1st custom dimension
+ 
+ @param dimension01
+    One of the available dimension values set in configureAvailableCustomDimensions01<br>
+    Will persist cross session. Set to nil to reset.
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! Must be called after setAvailableCustomDimensions01WithCustomDimensions
  */
-+ (void)clearDatabase;
++ (void)setCustomDimension01:(NSString *)dimension01;
 
-/**
- * Set maximum number of events that are stored locally. Additional events
- * will be discarded. Set to 0 for unlimited (default).
- *
- * @param max
- *            maximum number of events that can be stored
+/*!
+ @method
+ 
+ @abstract Set 2nd custom dimension
+ 
+ @param dimension02
+ One of the available dimension values set in configureAvailableCustomDimensions02<br>
+ Will persist cross session. Set to nil to reset.
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! Must be called after setAvailableCustomDimensions02
  */
-+ (void)setMaximumEventStorage:(NSInteger)maxEvents;
++ (void)setCustomDimension02:(NSString *)dimension02;
 
-// Frames per second logging
-
-/**
- * Place somewhere inside your draw loop to log FPS. If you are using openGL
- * then that will be inside your Renderer class' onDrawFrame() method. You
- * must then call stopLoggingFPS: at some point to collate the data and
- * send it to GameAnalytics. You can either do this intermittently e.g.
- * every 1000 frames, or over an entire gameplay session e.g. in the
- * UIApplication delegate applicationWillResignActive method. 
- * Either way, the average FPS will be logged.
- *
+/*!
+ @method
+ 
+ @abstract Set 3rd custom dimension
+ 
+ @param dimension03
+ One of the available dimension values set in configureAvailableCustomDimensions03<br>
+ Will persist cross session. Set to nil to reset.
+ 
+ @availability Available since 2.0.0
+ 
+ @attribute Note! Must be called after setAvailableCustomDimensions03W
  */
-+ (void)logFPS;
++ (void)setCustomDimension03:(NSString *)dimension03;
 
-/**
- * Call this method when you want to collate you FPS and send it to the
- * server. You can either do this intermittently e.g. every 1000 frames, or
- * over an entire gameplay session e.g. in the application delegate's applicationWillResignActive: method.
- * Either way, the average FPS will be logged. The parameters are optional.
- * If left out, the name of the current activity will be logged as the area
- * parameter.
- *
- * @param area
- *            (optional - use to log the FPS in a specific level/area)
- * @param x
- *            (optional)
- * @param y
- *            (optional)
- * @param z
- *            (optional)
+/*!
+ @method
+ 
+ @abstract Set user facebook id
+ 
+ @param facebookId
+    Facebook id of user (Persists cross session)
+ 
+ @availability Available since 2.0.0
  */
-+ (void)stopLoggingFPSForArea:(NSString *)area x:(NSNumber *)x y:(NSNumber *)y z:(NSNumber *)z;
++ (void)setFacebookId:(NSString *)facebookId;
 
-+ (void)stopLoggingFPS;
-
-/**
- * Set the critical FPS limit. If the average FPS over a period is under
- * this value then a "FPSCritical" design event will be logged. The default
- * is 20 frames per second.
- *
- * @param criticalFPS
- *            in frames per second
+/*!
+ @method
+ 
+ @abstract Set user gender
+ 
+ @param gender
+    Gender of user (Persists cross session)<br>
+    Must be one of (male / female)
+ 
+ @availability Available since 2.0.0
  */
-+ (void)setCriticalFPSLimit:(NSNumber *)criticalFPS;
++ (void)setGender:(NSString *)gender;
 
-/**
- * Set the minimum time period for an average FPS to be logged. This stops
- * spurious results coming from very short time periods. Default is 5
- * seconds.
- *
- * @param minimumTimePeriod
- *            in seconds
+/*!
+ @method
+ 
+ @abstract Set user birth year
+ 
+ @param birthYear
+    Birth year of user (Persists cross session)
+ 
+ @availability Available since 2.0.0
  */
-+ (void)setMinimumFPSTimePeriod:(NSTimeInterval)minimumTimePeriod;
-
-/**
- * The userId that the SDK uses to track each individual user on the server.
- *
- * @return the user id or null if the SDK is not initialised.
- */
-+ (NSString *)getUserID;
-
-/**
- * Set a custom userId string to be attached to all subsequent events. By
- * default, the user ID is generated from the unique identifiers built in to the os.
- *
- * @param userId
- *            Custom unique user ID
- */
-+ (void)setUserID:(NSString *)userID;
-
-/**
- * Force a new session to be started by creating a new sessionID. Normally this will not be required.
- *
- */
-+ (void)updateSessionID;
++ (void)setBirthYear:(NSInteger)birthYear;
 
 @end
-
-extern NSString *k_GA_LoggerMessageNotification;
-
