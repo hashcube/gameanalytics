@@ -2,105 +2,77 @@
 
 @implementation GameAnalyticsPlugin
 
-// The plugin must call super dealloc.
-- (void) dealloc {
-  [super dealloc];
-}
-
 // The plugin must call super init.
 - (id) init {
-  self = [super init];
-  if (!self) {
-    return nil;
+  if (self = [super init]) {
   }
   return self;
 }
 
-
 - (void) initializeWithManifest:(NSDictionary *)manifest appDelegate:(TeaLeafAppDelegate *)appDelegate {
-  NSDictionary *ios = [manifest valueForKey:@"ios"];
+    NSDictionary *ios = [manifest valueForKey:@"ios"];
+    NSDictionary *gameAnalyticsResources = [manifest valueForKey:@"gameanalytics"];
 
-  //To Track crashes
-  [GameAnalytics enableExceptionHandler:TRUE];
-  [GameAnalytics initializeWithGameKey:[ios valueForKey:@"gameanalyticsGameKey"]
-                             secretKey:[ios valueForKey:@"gameanalyticsSecretKey"]];
-
-  //NOTE: REMOVE THIS IN PRODUCTION
-  //[GameAnalytics setDebugLogLevelVerbose:TRUE];
+    [GameAnalytics configureBuild:[NSString stringWithFormat:@"%@",[manifest valueForKey:@"version"]]];
+    // We should do this before initilisation, so currencies & itemTypes should be declared in manifest.json
+    [GameAnalytics configureAvailableResourceCurrencies:(NSArray*)[gameAnalyticsResources valueForKey:@"currencies"]];
+    [GameAnalytics configureAvailableResourceItemTypes:(NSArray*)[gameAnalyticsResources valueForKey:@"itemTypes"]];
+    [GameAnalytics setEnabledInfoLog:YES];
+    [GameAnalytics initializeWithGameKey:[ios valueForKey:@"gameanalyticsGameKey"]
+                            gameSecret:[ios valueForKey:@"gameanalyticsSecretKey"]];
 }
 
 - (void) setUserInfo:(NSDictionary *) jsonData {
-  NSString *gender = [jsonData objectForKey:@"gender"];
-  NSNumber *birthYear = [jsonData objectForKey:@"birthYear"];
-  NSNumber *friendCount = [jsonData objectForKey:@"friendCount"];
+    NSString *gender = [jsonData objectForKey:@"gender"];
+    NSString *facebookId = [jsonData objectForKey:@"facebook_id"];
 
-  if(gender == (id)[NSNull null] || gender.length == 0 ) {
-    gender = nil;
-  }
-  if ([birthYear isKindOfClass:[NSNull class]]) {
-    birthYear = nil;
-  }
-  if ([friendCount isKindOfClass:[NSNull class]]) {
-    friendCount = nil;
-  }
+    NSInteger birthYear = [[jsonData objectForKey:@"birthYear"] intValue];
 
-  [GameAnalytics setUserInfoWithGender:gender
-                             birthYear:birthYear
-                           friendCount:friendCount];
+    if(gender == (id)[NSNull null] || gender.length == 0 ) {
+        gender = nil;
+    }
+    if(facebookId == (id)[NSNull null] || gender.length == 0 ) {
+        facebookId = nil;
+    }
+
+    [GameAnalytics setGender: gender];
+    [GameAnalytics setBirthYear: birthYear];
+    [GameAnalytics setFacebookId: facebookId];
 }
 
 - (void) newBusinessEvent:(NSDictionary *) jsonData {
-  [GameAnalytics newBusinessEventWithId:[jsonData objectForKey:@"item"]
-                               currency:[jsonData objectForKey:@"currency"]
-                                 amount:[jsonData objectForKey:@"amount"]];
+    [GameAnalytics addBusinessEventWithCurrency:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"currency"]]
+                                         amount:[[jsonData objectForKey:@"amount"] intValue]
+                                       itemType:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_type"]]
+                                         itemId:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_id"]]
+                                       cartType:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"cart_type"]]
+                                        receipt:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"receipt"]]];
+}
+
+- (void) newResourceEvent:(NSDictionary *) jsonData {
+    [GameAnalytics addResourceEventWithFlowType:(GAResourceFlowType)[[jsonData objectForKey:@"flow_type"] intValue]
+                                       currency:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"currency"]]
+                                         amount:[NSNumber numberWithInteger:[[jsonData objectForKey:@"amount"]intValue]]
+                                       itemType:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_type"]]
+                                         itemId:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_id"]]];
 }
 
 - (void) newDesignEvent:(NSDictionary *) jsonData {
-  [GameAnalytics newDesignEventWithId:[jsonData objectForKey:@"eventId"]
-                                value:[jsonData objectForKey:@"value"]];
+    [GameAnalytics addDesignEventWithEventId:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"event_id"]]
+                                       value:[NSNumber numberWithInteger:[[jsonData objectForKey:@"value"]intValue]]];
 }
 
-- (void) newErrorEvent:(NSDictionary *) jsonData {
-  //TODO
+- (void) newProgressionEvent: (NSDictionary *) jsonData {
+    [GameAnalytics addProgressionEventWithProgressionStatus:(GAProgressionStatus)[[jsonData objectForKey:@"status"]intValue]
+                                              progression01:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"prog_1"]]
+                                              progression02:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"prog_2"]]
+                                              progression03:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"prog_3"]]
+                                                      score: [[jsonData objectForKey:@"score"] intValue]];
 }
 
-- (void) setNetworkPollEvent:(NSDictionary *) jsonData {
-  //TODO
+- (void) newErrorEvent: (NSDictionary *) jsonData {
+    [GameAnalytics addErrorEventWithSeverity:(GAErrorSeverity)[[jsonData objectForKey:@"severity"] intValue]
+                                     message:[NSString stringWithFormat:@"%@", [jsonData objectForKey:@"message"]]];
 }
 
-- (void) setSendEventsInterval:(NSDictionary *) jsonData {
-  //TODO
-  //[GameAnalytics setSendEventsInterval:10];
-}
-
-- (void) setSessionTimeout:(NSDictionary *) jsonData {
-  //TODO
-}
-
-- (void) startFPS:(NSDictionary *) jsonData {
-  //TODO
-}
-- (void)fpsTimerTick:(NSTimer *)timer {
-  //[GameAnalytics logFPS];
-}
-- (void)stopFPS:(NSDictionary *) jsonData {
-  //TODO
-  //[GameAnalytics stopLoggingFPS];
-}
-
-- (void) applicationWillTerminate:(UIApplication *)app {
-}
-
-- (void) applicationDidBecomeActive:(UIApplication *)app {
-}
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  return true;
-}
-
-- (void) handleOpenURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication {
-}
-
-- (void) didBecomeActive:(NSDictionary *)jsonObject {
-}
 @end

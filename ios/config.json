@@ -5,7 +5,7 @@
     "GameAnalyticsPlugin.mm"
   ],
   "frameworks": [
-    "libGameAnalytics_1.0.2.a",
+    "libGameAnalytics.a",
     "GAResources.bundle"
   ],
   "linkerFlags": [

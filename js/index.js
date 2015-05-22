@@ -1,14 +1,17 @@
+/* global Class, exports:true, NATIVE, logger */
+
 var debug = false,
 
   sendEvent = function (fn, data) {
-    NATIVE.plugins.sendEvent("GameAnalyticsPlugin", fn, JSON.stringify(data || {}));
+    NATIVE.plugins.sendEvent('GameAnalyticsPlugin', fn,
+      JSON.stringify(data || {}));
   },
 
-  log = function() {
-    if(debug) {
+  log = function () {
+    if (debug) {
       var arg = Array.prototype.slice.call(arguments);
 
-      arg.unshift("GameAnalytics - JS: ");
+      arg.unshift('GameAnalytics - JS: ');
       logger.log.apply(logger, arg);
     }
   },
@@ -18,55 +21,67 @@ var debug = false,
       log('init');
     };
 
-    this.logFPS = function () {
-      log('logFPS');
-      sendEvent("logFPS");
-    };
-
-    this.setUserInfo = function (gender, birth_year, friend_count) {
-      log('setUserInfo', gender, birth_year, friend_count);
-      sendEvent("setUserInfo", {
+    this.setUserInfo = function (gender, birth_year, facebook_id) {
+      log('setUserInfo', gender, birth_year, facebook_id);
+      sendEvent('setUserInfo', {
         gender: gender,
         birthYear: birth_year,
-        friendCount: friend_count
+        facebook_id: facebook_id
       });
     };
 
-    this.newBusinessEvent = function(item, currency, amount) {
-      log('newBusinessEvent', item, currency, amount);
-      sendEvent("newBusinessEvent", {
-        item: item,
+    this.newBusinessEvent = function (currency, amount, item_type,
+      item_id, cart_type, reciept) {
+      log('newBusinessEvent', currency, amount, item_type,
+      item_id, cart_type, reciept);
+      sendEvent('newBusinessEvent', {
         currency: currency,
-        amount: amount
+        amount: amount,
+        item_type: item_type,
+        item_id: item_id,
+        cart_type: cart_type,
+        reciept: reciept
       });
     };
 
-    this.newDesignEvent = function(id, value) {
-      log("newDesignEvent", id, value);
-      sendEvent("newDesignEvent", {
+    this.newResourceEvent = function (flow, currency, amount,
+      item_type, item_id) {
+      log('newResourceEvent', flow, currency, amount, item_type, item_id);
+      sendEvent('newResourceEvent', {
+        flow_type: flow,
+        currency: currency,
+        amount: amount,
+        item_type: item_type,
+        item_id: item_id
+      });
+    };
+
+    this.newDesignEvent = function (id, value) {
+      log('newDesignEvent', id, value);
+      sendEvent('newDesignEvent', {
         eventId: id,
         value: value
       });
     };
 
-    this.newErrorEvent = function(message) {
-      log("newErrorEvent", message);
-      sendEvent("newErrorEvent", message);
+    this.newProgressionEvent = function (status, prog_1, prog_2, prog_3,
+      score) {
+      log('newProgressionEvent', status, prog_1, prog_2, prog_3, score);
+      sendEvent('newProgressionEvent', {
+        status: status,
+        prog_1: prog_1,
+        prog_2: prog_2,
+        prog_3: prog_3,
+        score: score
+      });
     };
 
-    this.setNetworkPollInterval = function(value) {
-      log("setNetworkPollInterval", value);
-      sendEvent("setNetworkPollInterval", value);
-    };
-
-    this.setSendEventsInterval = function(value) {
-      log("setSendEventsInterval", value);
-      sendEvent("setSendEventsInterval", value);
-    };
-
-    this.setSessionTimeOut = function(value) {
-      log("setSessionTimeOut", value);
-      sendEvent("setSessionTimeOut", value);
+    this.newErrorEvent = function (severity, message) {
+      log('newErrorEvent', message);
+      sendEvent('newErrorEvent', {
+        severity: severity,
+        message: message
+      });
     };
   });
 
