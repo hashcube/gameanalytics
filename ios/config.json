@@ -8,7 +8,7 @@
     "libGameAnalytics.a",
     "GAResources.bundle"
   ],
-  "linkerFlags": [
+  "additionalLinkerFlags": [
     "-ObjC"
   ]
 }
