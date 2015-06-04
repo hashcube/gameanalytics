@@ -1,5 +1,7 @@
 #import "GameAnalyticsPlugin.h"
 
+#define NULL_CHECK(x) (x) == (id)[NSNull null] ? nil : x
+
 @implementation GameAnalyticsPlugin
 
 // The plugin must call super init.
@@ -18,61 +20,50 @@
     [GameAnalytics configureAvailableResourceCurrencies:(NSArray*)[gameAnalyticsResources valueForKey:@"currencies"]];
     [GameAnalytics configureAvailableResourceItemTypes:(NSArray*)[gameAnalyticsResources valueForKey:@"itemTypes"]];
     [GameAnalytics setEnabledInfoLog:YES];
+    [GameAnalytics setEnabledVerboseLog:YES];
     [GameAnalytics initializeWithGameKey:[ios valueForKey:@"gameanalyticsGameKey"]
                             gameSecret:[ios valueForKey:@"gameanalyticsSecretKey"]];
 }
 
 - (void) setUserInfo:(NSDictionary *) jsonData {
-    NSString *gender = [jsonData objectForKey:@"gender"];
-    NSString *facebookId = [jsonData objectForKey:@"facebook_id"];
-
-    NSInteger birthYear = [[jsonData objectForKey:@"birthYear"] intValue];
-
-    if(gender == (id)[NSNull null] || gender.length == 0 ) {
-        gender = nil;
-    }
-    if(facebookId == (id)[NSNull null] || gender.length == 0 ) {
-        facebookId = nil;
-    }
-
-    [GameAnalytics setGender: gender];
-    [GameAnalytics setBirthYear: birthYear];
-    [GameAnalytics setFacebookId: facebookId];
+    [GameAnalytics setGender:[NSString stringWithFormat:@"%@", NULL_CHECK([jsonData objectForKey: @"gender"])]];
+    [GameAnalytics setFacebookId: [NSString stringWithFormat:@"%@", NULL_CHECK([jsonData objectForKey: @"facebook_id"])]];
+    [GameAnalytics setBirthYear: [NULL_CHECK([jsonData objectForKey: @"gender"]) intValue]];
 }
 
 - (void) newBusinessEvent:(NSDictionary *) jsonData {
-    [GameAnalytics addBusinessEventWithCurrency:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"currency"]]
-                                         amount:[[jsonData objectForKey:@"amount"] intValue]
-                                       itemType:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_type"]]
-                                         itemId:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_id"]]
-                                       cartType:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"cart_type"]]
-                                        receipt:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"receipt"]]];
+    [GameAnalytics addBusinessEventWithCurrency:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"currency"])]
+                                         amount:[NULL_CHECK([jsonData objectForKey:@"amount"]) intValue]
+                                       itemType:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"item_type"])]
+                                         itemId:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"item_id"])]
+                                       cartType:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"cart_type"])]
+                                        receipt:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"receipt"])]];
 }
 
 - (void) newResourceEvent:(NSDictionary *) jsonData {
-    [GameAnalytics addResourceEventWithFlowType:(GAResourceFlowType)[[jsonData objectForKey:@"flow_type"] intValue]
-                                       currency:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"currency"]]
+    [GameAnalytics addResourceEventWithFlowType:(GAResourceFlowType)[NULL_CHECK([jsonData objectForKey:@"flow_type"]) intValue]
+                                       currency:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"currency"])]
                                          amount:[NSNumber numberWithInteger:[[jsonData objectForKey:@"amount"]intValue]]
-                                       itemType:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_type"]]
-                                         itemId:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"item_id"]]];
+                                       itemType:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"item_type"])]
+                                         itemId:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"item_id"])]];
 }
 
 - (void) newDesignEvent:(NSDictionary *) jsonData {
-    [GameAnalytics addDesignEventWithEventId:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"event_id"]]
-                                       value:[NSNumber numberWithInteger:[[jsonData objectForKey:@"value"]intValue]]];
+    [GameAnalytics addDesignEventWithEventId:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"event_id"])]
+                                       value:[NSNumber numberWithInteger:[NULL_CHECK([jsonData objectForKey:@"value"]) intValue]]];
 }
 
 - (void) newProgressionEvent: (NSDictionary *) jsonData {
-    [GameAnalytics addProgressionEventWithProgressionStatus:(GAProgressionStatus)[[jsonData objectForKey:@"status"]intValue]
-                                              progression01:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"prog_1"]]
-                                              progression02:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"prog_2"]]
-                                              progression03:[NSString stringWithFormat:@"%@",[jsonData objectForKey:@"prog_3"]]
-                                                      score: [[jsonData objectForKey:@"score"] intValue]];
+    [GameAnalytics addProgressionEventWithProgressionStatus:(GAProgressionStatus)[NULL_CHECK([jsonData objectForKey:@"status"])intValue]
+                                              progression01:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"prog_1"])]
+                                              progression02:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"prog_2"])]
+                                              progression03:[NSString stringWithFormat:@"%@",NULL_CHECK([jsonData objectForKey:@"prog_3"])]
+                                                      score:[NULL_CHECK([jsonData objectForKey:@"score"]) intValue]];
 }
 
 - (void) newErrorEvent: (NSDictionary *) jsonData {
-    [GameAnalytics addErrorEventWithSeverity:(GAErrorSeverity)[[jsonData objectForKey:@"severity"] intValue]
-                                     message:[NSString stringWithFormat:@"%@", [jsonData objectForKey:@"message"]]];
+    [GameAnalytics addErrorEventWithSeverity:(GAErrorSeverity)[NULL_CHECK([jsonData objectForKey:@"severity"]) intValue]
+                                     message:[NSString stringWithFormat:@"%@", NULL_CHECK([jsonData objectForKey:@"message"])]];
 }
 
 @end
