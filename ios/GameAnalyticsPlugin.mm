@@ -28,7 +28,7 @@
 - (void) setUserInfo:(NSDictionary *) jsonData {
     [GameAnalytics setGender:[NSString stringWithFormat:@"%@", NULL_CHECK([jsonData objectForKey: @"gender"])]];
     [GameAnalytics setFacebookId: [NSString stringWithFormat:@"%@", NULL_CHECK([jsonData objectForKey: @"facebook_id"])]];
-    [GameAnalytics setBirthYear: [NULL_CHECK([jsonData objectForKey: @"gender"]) intValue]];
+    [GameAnalytics setBirthYear: [NULL_CHECK([jsonData objectForKey: @"birth_year"]) intValue]];
 }
 
 - (void) newBusinessEvent:(NSDictionary *) jsonData {
