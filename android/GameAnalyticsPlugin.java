@@ -112,7 +112,7 @@ public class GameAnalyticsPlugin implements IPlugin {
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      eventId = obj.getString("eventId");
+      eventId = obj.getString("event_id");
       value = (float) obj.getDouble("value");
       GameAnalytics.newDesignEvent(eventId, value);
       log("newDesignEvent: " + eventId + ", " + Float.toString(value));

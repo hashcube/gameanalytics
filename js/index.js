@@ -59,7 +59,7 @@ var debug = false,
     this.newDesignEvent = function (id, value) {
       log('newDesignEvent', id, value);
       sendEvent('newDesignEvent', {
-        eventId: id,
+        event_id: id,
         value: value
       });
     };
