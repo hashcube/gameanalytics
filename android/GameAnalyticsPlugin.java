@@ -95,9 +95,9 @@ public class GameAnalyticsPlugin implements IPlugin {
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      item = obj.getString("item");
-      currency = obj.getString("currency");
-      amount = obj.getInt("amount");
+      item = obj.optString("item");
+      currency = obj.optString("currency");
+      amount = obj.optInt("amount");
       GameAnalytics.newBusinessEvent(item, currency, amount);
       log("newBusinessEvent: " + item + ", " + currency + ", " + Integer.toString(amount));
     } catch (JSONException e) {
@@ -108,13 +108,17 @@ public class GameAnalyticsPlugin implements IPlugin {
 
   public void newDesignEvent(String jsonData) {
     String eventId;
-    float value;
+    float value = 0;
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      eventId = obj.getString("event_id");
-      value = (float) obj.getDouble("value");
-      GameAnalytics.newDesignEvent(eventId, value);
+      eventId = obj.optString("event_id");
+      if (!obj.isNull("value")) {
+        value = (float) obj.getDouble("value");
+        GameAnalytics.newDesignEvent(eventId, value);
+      } else {
+        GameAnalytics.newDesignEvent(eventId);
+      }
       log("newDesignEvent: " + eventId + ", " + Float.toString(value));
     } catch (JSONException e) {
       log("newDesignEvent failed: " + e.getMessage());
