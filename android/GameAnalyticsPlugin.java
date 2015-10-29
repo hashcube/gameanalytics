@@ -55,7 +55,7 @@ public class GameAnalyticsPlugin implements IPlugin {
 
     // Set-up game analytics
     GameAnalytics.initialise(activity, secretKey, gameKey);
-
+    GameAnalytics.newDesignEvent("app_started", 1.0f);
     // Turn on automatic logging of unhandled exceptions for main/GUI thread
     GameAnalytics.logUnhandledExceptions();
   }

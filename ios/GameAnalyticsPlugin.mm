@@ -24,6 +24,7 @@
     // [GameAnalytics setEnabledVerboseLog:YES];
     [GameAnalytics initializeWithGameKey:[ios valueForKey:@"gameanalyticsGameKey"]
                             gameSecret:[ios valueForKey:@"gameanalyticsSecretKey"]];
+    [GameAnalytics addDesignEventWithEventId:@"app_started" value:[NSNumber numberWithInt:1]];
 }
 
 - (void) setUserInfo:(NSDictionary *) jsonData {
