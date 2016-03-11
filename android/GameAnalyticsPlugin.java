@@ -60,6 +60,15 @@ public class GameAnalyticsPlugin implements IPlugin {
     GameAnalytics.logUnhandledExceptions();
   }
 
+  public void onFirstRun() {
+  }
+
+  public void onRenderPause() {
+  }
+
+  public void onRenderResume() {
+  }
+
   public void logFPS(String jsonData) {
     GameAnalytics.logFPS();
     log("logFPS");
