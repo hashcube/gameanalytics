@@ -13,7 +13,7 @@
 
 - (void) initializeWithManifest:(NSDictionary *)manifest appDelegate:(TeaLeafAppDelegate *)appDelegate {
     NSDictionary *ios = [manifest valueForKey:@"ios"];
-    NSDictionary *gameAnalyticsResources = [manifest valueForKey:@"gameanalytics"];
+    NSDictionary *gameAnalyticsResources = [ios valueForKey:@"gameanalytics"];
 
     [GameAnalytics configureBuild:[NSString stringWithFormat:@"%@",[manifest valueForKey:@"version"]]];
     // We should do this before initilisation, so currencies & itemTypes should be declared in manifest.json

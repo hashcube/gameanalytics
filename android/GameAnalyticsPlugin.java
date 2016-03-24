@@ -49,58 +49,59 @@ public class GameAnalyticsPlugin implements IPlugin {
     JSONObject resourcesData;
     JSONArray resourceCurrencies;
     JSONArray resourceItemTypes;
-    StringVector currencies = new StringVector();
-    StringVector itemTypes = new StringVector();
+    String[] currencies;
+    String[] itemTypes;
 
     _activity = activity;
-
-    try {
-      Bundle meta = manager.getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA).metaData;
-      if (meta != null) {
-        gameKey = meta.getString("gameanalyticsGameKey");
-        secretKey = meta.getString("gameanalyticsSecretKey");
-        resources = meta.getString("gameanalyticsResources");
-        resourcesData = new JSONObject(resources);
-        resourceCurrencies = resourcesData.getJSONArray("currencies");
-        resourceItemTypes = resourcesData.getJSONArray("itemTypes");
-
-        // Configure available virtual currencies and item types
-        for (int i = 0 ; i < resourceCurrencies.length(); i++) {
-          try {
-            String obj = resourceCurrencies.getString(i);
-            currencies.add(obj);
-          } catch (JSONException e) {
-           log("getting Currencies failed: " + e.getMessage());
-          }
-        };
-
-        for (int i = 0 ; i < resourceItemTypes.length(); i++) {
-          try {
-            String obj = resourceItemTypes.getString(i);
-            itemTypes.add(obj);
-          } catch (JSONException e) {
-           log("getting itemTypes failed: " + e.getMessage());
-          }
-        };
-      }
-    } catch (Exception e) {
-        log(e.getMessage());
-    }
 
     if (DEBUG) {
       GameAnalytics.setEnabledInfoLog(true);
       GameAnalytics.setEnabledVerboseLog(true);
     }
+    try {
+      Bundle meta = manager.getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+      if (meta != null) {
+        gameKey = meta.getString("gameanalyticsGameKey");
+        secretKey = meta.getString("gameanalyticsSecretKey");
+        resources = meta.getString("gameanalytics");
+        resourcesData = new JSONObject(resources);
+        resourceCurrencies = resourcesData.getJSONArray("currencies");
+        resourceItemTypes = resourcesData.getJSONArray("itemTypes");
 
-    GameAnalytics.configureAvailableResourceCurrencies(currencies);
-    GameAnalytics.configureAvailableResourceItemTypes(itemTypes);
+        // Configure available virtual currencies and item types
+        currencies = new String[resourceCurrencies.length()];
+        for (int i = 0 ; i < resourceCurrencies.length(); i++) {
+          try {
+            String obj = resourceCurrencies.getString(i);
+            currencies[i] = obj;
+          } catch (JSONException e) {
+           log("getting Currencies failed: " + e.getMessage());
+          }
+        };
+
+        itemTypes = new String[resourceItemTypes .length()];
+        for (int i = 0 ; i < resourceItemTypes.length(); i++) {
+          try {
+            String obj = resourceItemTypes.getString(i);
+            itemTypes[i] = obj;
+          } catch (JSONException e) {
+           log("getting itemTypes failed: " + e.getMessage());
+          }
+        };
+        GameAnalytics.configureAvailableResourceCurrencies(currencies);
+        GameAnalytics.configureAvailableResourceItemTypes(itemTypes);
+      }
+    } catch (Exception e) {
+        log(e.getMessage());
+    }
+
 
     // Set-up game analytics
     GameAnalytics.initializeWithGameKey(activity, gameKey, secretKey);
   }
 
   public void setUserInfo(String jsonData) {
-    String gender = null;
+    Integer gender = null;
     Integer birthYear = null;
     String facebookId = null;
 
@@ -108,7 +109,7 @@ public class GameAnalyticsPlugin implements IPlugin {
       JSONObject obj = new JSONObject(jsonData);
 
       if (!obj.isNull("gender")) {
-          gender = obj.getString("gender");
+          gender = obj.getInt("gender");
       }
       if (!obj.isNull("facebook_id")) {
           facebookId = obj.getString("facebook_id");
@@ -126,44 +127,54 @@ public class GameAnalyticsPlugin implements IPlugin {
   }
 
   public void newBusinessEvent(String jsonData) {
-    String currency;
-    int amount;
-    String itemType;
-    String itemId;
-    String cartType;
-    String reciept;
+    String currency = "USD";
+    Integer amount = 0;
+    String itemType = "";
+    String itemId = "";
+    String cartType = "";
+    String reciept = "";
+    String signature = null;
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      currency = obj.getString("currency");
+      if(!obj.isNull("currency")) {
+        currency = obj.getString("currency");
+      }
       amount = obj.getInt("amount");
       itemType = obj.getString("item_type");
       itemId = obj.getString("item_id");
       cartType = obj.getString("cart_type");
       reciept = obj.getString("reciept");
+      signature = obj.optString("signature");
 
-      GameAnalytics.addBusinessEventWithCurrency(currency, amount, itemType, itemId, cartType, reciept, "google_play");
+      GameAnalytics.addBusinessEventWithCurrency(currency, amount, itemType, itemId, cartType, reciept, "google_play", signature);
     } catch (JSONException e) {
       log("newBusinessEvent failed: " + e.getMessage());
     }
   }
 
   public void newResourceEvent(String jsonData) {
-    int flowType;
-    String currency;
-    float amount;
-    String itemType;
-    String itemId;
+    int flowType = 0;
+    String currency = "cash";
+    float amount = 0;
+    String itemType = "";
+    String itemId = "";
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      currency = obj.getString("currency");
-      amount = (float) obj.getDouble("amount");
+      if (!obj.isNull("currency")) {
+        currency = obj.getString("currency");
+      }
+      if (!obj.isNull("amount")) {
+        amount = Float.parseFloat(obj.getString("amount"));
+      }
       itemType = obj.getString("item_type");
       itemId = obj.getString("item_id");
-      flowType = obj.getInt("flow_type");
+      if (!obj.isNull("flow_type")) {
+        flowType = obj.optInt("flow_type");
+      }
 
-      GameAnalytics.addResourceEventWithFlowType(GAResourceFlowType.swigToEnum(flowType), currency, amount, itemType, itemId);
+      GameAnalytics.addResourceEventWithFlowType(GAResourceFlowType.valueOf(flowType), currency, amount, itemType, itemId);
     } catch (JSONException e) {
       log("newResourceEvent failed: " + e.getMessage());
     }
@@ -175,8 +186,10 @@ public class GameAnalyticsPlugin implements IPlugin {
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      eventId = obj.getString("event_id");
-      value = obj.getDouble("value");
+      eventId = obj.optString("event_id");
+      if (!obj.isNull("value")) {
+        value = obj.optDouble("value");
+      }
       GameAnalytics.addDesignEventWithEventId(eventId, value);
     } catch (JSONException e) {
       log("newDesignEvent failed: " + e.getMessage());
@@ -184,34 +197,40 @@ public class GameAnalyticsPlugin implements IPlugin {
   }
 
   public void newProgressionEvent(String jsonData) {
-    int flowType;
-    String prog1;
-    String prog2;
-    String prog3;
-    int score;
+    int flowType = 0;
+    String prog1 = "";
+    String prog2 = "";
+    String prog3 = "";
+    int score = 0;
 
     try {
       JSONObject obj = new JSONObject(jsonData);
       prog1 = obj.getString("prog_1");
       prog2 = obj.getString("prog_2");
       prog3 = obj.getString("prog_3");
-      score = obj.getInt("score");
-      flowType = obj.getInt("status");
-      GameAnalytics.addProgressionEventWithProgressionStatus(GAProgressionStatus.swigToEnum(flowType), prog1, prog2, prog3, score);
+      if (!obj.isNull("score")) {
+        score = obj.getInt("score");
+      }
+      if (!obj.isNull("status")) {
+        flowType = obj.getInt("status");
+      }
+      GameAnalytics.addProgressionEventWithProgressionStatus(GAProgressionStatus.valueOf(flowType), prog1, prog2, prog3, score);
     } catch (JSONException e) {
       log("newProgressionEvent failed: " + e.getMessage());
     }
   }
 
   public void newErrorEvent(String jsonData) {
-    int severity;
-    String message;
+    int severity = 0;
+    String message = "";
 
     try {
       JSONObject obj = new JSONObject(jsonData);
-      severity = obj.getInt("severity");
+      if (!obj.isNull("severity")) {
+        severity = obj.getInt("severity");
+      }
       message = obj.getString("message");
-      GameAnalytics.addErrorEventWithSeverity(GAErrorSeverity.swigToEnum(severity), message);
+      GameAnalytics.addErrorEventWithSeverity(GAErrorSeverity.valueOf(severity), message);
     } catch (JSONException e) {
       log("newErrorEvent failed: " + e.getMessage());
     }
