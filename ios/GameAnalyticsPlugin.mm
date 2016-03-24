@@ -19,8 +19,9 @@
     // We should do this before initilisation, so currencies & itemTypes should be declared in manifest.json
     [GameAnalytics configureAvailableResourceCurrencies:(NSArray*)[gameAnalyticsResources valueForKey:@"currencies"]];
     [GameAnalytics configureAvailableResourceItemTypes:(NSArray*)[gameAnalyticsResources valueForKey:@"itemTypes"]];
-    [GameAnalytics setEnabledInfoLog:YES];
-    [GameAnalytics setEnabledVerboseLog:YES];
+    // Only for Debugging purpose
+    // [GameAnalytics setEnabledInfoLog:YES];
+    // [GameAnalytics setEnabledVerboseLog:YES];
     [GameAnalytics initializeWithGameKey:[ios valueForKey:@"gameanalyticsGameKey"]
                             gameSecret:[ios valueForKey:@"gameanalyticsSecretKey"]];
 }
