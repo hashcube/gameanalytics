@@ -26,7 +26,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 public class GameAnalyticsPlugin implements IPlugin {
   private Activity _activity;
   private static String LOGID = "{GameAnalytics Native}";
-  private static boolean DEBUG = true;
+  private static boolean DEBUG = false;
 
   public GameAnalyticsPlugin() {
   }
@@ -45,6 +45,7 @@ public class GameAnalyticsPlugin implements IPlugin {
     String gameKey = "";
     String secretKey = "";
     String version = "";
+    Integer length = 0;
     String resources;
     JSONObject resourcesData;
     JSONArray resourceCurrencies;
@@ -69,8 +70,9 @@ public class GameAnalyticsPlugin implements IPlugin {
         resourceItemTypes = resourcesData.getJSONArray("itemTypes");
 
         // Configure available virtual currencies and item types
-        currencies = new String[resourceCurrencies.length()];
-        for (int i = 0 ; i < resourceCurrencies.length(); i++) {
+        length = resourceCurrencies.length();
+        currencies = new String[length];
+        for (int i = 0 ; i < length; i++) {
           try {
             String obj = resourceCurrencies.getString(i);
             currencies[i] = obj;
@@ -79,8 +81,9 @@ public class GameAnalyticsPlugin implements IPlugin {
           }
         };
 
-        itemTypes = new String[resourceItemTypes .length()];
-        for (int i = 0 ; i < resourceItemTypes.length(); i++) {
+        length = resourceItemTypes.length();
+        itemTypes = new String[length];
+        for (int i = 0 ; i < length; i++) {
           try {
             String obj = resourceItemTypes.getString(i);
             itemTypes[i] = obj;
@@ -132,7 +135,8 @@ public class GameAnalyticsPlugin implements IPlugin {
     String itemType = "";
     String itemId = "";
     String cartType = "";
-    String reciept = "";
+    String receipt = "";
+    String store = "";
     String signature = null;
 
     try {
@@ -144,10 +148,11 @@ public class GameAnalyticsPlugin implements IPlugin {
       itemType = obj.getString("item_type");
       itemId = obj.getString("item_id");
       cartType = obj.getString("cart_type");
-      reciept = obj.getString("reciept");
+      receipt = obj.getString("receipt");
+      store = obj.optString("store");
       signature = obj.optString("signature");
 
-      GameAnalytics.addBusinessEventWithCurrency(currency, amount, itemType, itemId, cartType, reciept, "google_play", signature);
+      GameAnalytics.addBusinessEventWithCurrency(currency, amount, itemType, itemId, cartType, receipt, store, signature);
     } catch (JSONException e) {
       log("newBusinessEvent failed: " + e.getMessage());
     }
@@ -234,6 +239,15 @@ public class GameAnalyticsPlugin implements IPlugin {
     } catch (JSONException e) {
       log("newErrorEvent failed: " + e.getMessage());
     }
+  }
+
+  public void onFirstRun() {
+  }
+
+  public void onRenderPause() {
+  }
+
+  public void onRenderResume() {
   }
 
   public void onResume() {
