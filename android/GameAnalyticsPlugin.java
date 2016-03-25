@@ -7,14 +7,6 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 
 import com.gameanalytics.sdk.*;
-import com.gameanalytics.sdk.GAErrorSeverity;
-import com.gameanalytics.sdk.GAProgressionStatus;
-import com.gameanalytics.sdk.GAResourceFlowType;
-
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
