@@ -3,11 +3,15 @@
 
   <xsl:param name="gameanalyticsGameKey"/>
   <xsl:param name="gameanalyticsSecretKey"/>
+  <xsl:param name="gameanalytics"/>
   <xsl:template match="meta-data[@android:name='gameanalyticsGameKey']">
     <meta-data android:name="gameanalyticsGameKey" android:value="{$gameanalyticsGameKey}"/>
   </xsl:template>
   <xsl:template match="meta-data[@android:name='gameanalyticsSecretKey']">
     <meta-data android:name="gameanalyticsSecretKey" android:value="{$gameanalyticsSecretKey}"/>
+  </xsl:template>
+  <xsl:template match="meta-data[@android:name='gameanalytics']">
+    <meta-data android:name="gameanalytics" android:value="{$gameanalytics}"/>
   </xsl:template>
 
   <xsl:output indent="yes" />

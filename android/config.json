@@ -1,7 +1,10 @@
 {
-  "copyFiles": ["GameAnalyticsPlugin.java"],
-  "libraries": [],
-  "jars": ["game-analytics-wrapper-v1.14.5.jar"],
+  "copyFiles": [
+    "GameAnalyticsPlugin.java"
+  ],
+  "jars": [
+    "libs/gameanalytics.jar"
+  ],
   "injectionXML": "manifest.xml",
   "injectionXSL": "manifest.xsl"
 }
