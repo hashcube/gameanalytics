@@ -128,7 +128,7 @@ public class GameAnalyticsPlugin implements IPlugin {
     String itemId = "";
     String cartType = "";
     String receipt = "";
-    String store = "";
+    String purchase_data = null;
     String signature = null;
 
     try {
@@ -141,10 +141,12 @@ public class GameAnalyticsPlugin implements IPlugin {
       itemId = obj.getString("item_id");
       cartType = obj.getString("cart_type");
       receipt = obj.getString("receipt");
-      store = obj.optString("store");
-      signature = obj.optString("signature");
 
-      GameAnalytics.addBusinessEventWithCurrency(currency, amount, itemType, itemId, cartType, receipt, store, signature);
+      JSONObject jObject  = new JSONObject(receipt);
+      purchase_data = jObject.getString("purchaseData");
+      signature = jObject.getString("dataSignature");
+
+      GameAnalytics.addBusinessEventWithCurrency(currency, amount, itemType, itemId, cartType, purchase_data, "google_play", signature);
     } catch (JSONException e) {
       log("newBusinessEvent failed: " + e.getMessage());
     }
