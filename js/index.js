@@ -31,16 +31,16 @@ var debug = false,
     };
 
     this.newBusinessEvent = function (currency, amount, item_type,
-      item_id, cart_type, reciept) {
+      item_id, cart_type, receipt) {
       log('newBusinessEvent', currency, amount, item_type,
-      item_id, cart_type, reciept);
+      item_id, cart_type, receipt);
       sendEvent('newBusinessEvent', {
         currency: currency,
         amount: amount,
         item_type: item_type,
         item_id: item_id,
         cart_type: cart_type,
-        reciept: reciept
+        receipt: receipt
       });
     };
 
